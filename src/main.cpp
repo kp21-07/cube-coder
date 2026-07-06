@@ -1,7 +1,7 @@
-#include "test.h"
+#include "test/test.h"
 
 int main()
 {
-	test_solver();
+	test_solver(IDA_Misplaced_Stickers);
 	return 0;
 }

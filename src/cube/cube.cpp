@@ -1,5 +1,5 @@
 #include "cube.h"
-#include "move.h"
+#include "cubie.h"
 #include <stdio.h>
 
 Cube::Cube() { reset(); }
@@ -23,7 +23,7 @@ void Cube::reset()
 					faces[f][r][c] = FACE_COLORS[f];
 }
 
-bool Cube::is_solved()
+bool Cube::is_solved() const
 {
 	for (int f = 0; f < 6; f++)
 		for (int r = 0; r < 3; r++)
@@ -257,15 +257,14 @@ void Cube::apply_move(Move m)
 	}
 }
 
-void Cube::apply_moves(vector<Move>& moves)
+void Cube::apply_moves(const vector<Move>& moves)
 {
 	for (Move move : moves) apply_move(move);
 }
 
 void Cube::apply_algorithm(string alg)
 {
-	vector<Move> moves = parse_alg(alg);
-	apply_moves(moves);
+	apply_moves(parse_alg(alg));
 }
 
 vector<Move> Cube::gen_random_scramble(int length)
@@ -303,9 +302,98 @@ vector<Move> Cube::gen_random_scramble(int length)
 	return scramble;
 }
 
-const Color& Cube::at(Face face, int row, int column)
+void Cube::scramble(int length)
+{
+	apply_moves(gen_random_scramble(length));
+}
+
+void Cube::scramble(string alg)
+{
+	apply_algorithm(alg);
+}
+
+const Color& Cube::at(Face face, int row, int column) const
 {
 	return faces[face_to_index(face)][row][column];
+}
+
+Color Cube::facelet(const Facelet& f) const
+{
+	return faces[face_to_index(f.face)][f.row][f.col];
+}
+
+void Cube::set_facelet(const Facelet& f, Color c)
+{
+	faces[face_to_index(f.face)][f.row][f.col] = c;
+}
+
+CornerState Cube::extract_corner(Corner pos) const
+{
+	CornerState s;
+
+	const CornerInfo& info = CORNERS[(int) pos];
+
+	Color c[3];
+	for (int i = 0; i < 3; i++)
+			c[i] = facelet(info.facelets[i]);
+
+	for (int i = 0; i < 8; i++) {
+		if (CORNERS[i].same_corner(c)) {
+			s.piece = CORNERS[i].piece;
+
+			for (int j = 0; j < 3; j++) {
+				if (c[j] == Color::White || c[j] == Color::Yellow) {
+					s.orientation = (u8) j;
+					break;
+				}
+			}
+
+			return s;
+		}
+	}
+
+	fprintf(stderr, "Invalid Corner");
+	exit(1);
+}
+
+EdgeState Cube::extract_edge(Edge pos) const
+{
+	EdgeState s;
+
+	const EdgeInfo& info = EDGES[(int) pos];
+
+	Color c[2];
+	for (int i = 0; i < 2; i++)
+			c[i] = facelet(info.facelets[i]);
+
+	for (int i = 0; i < 12; i++) {
+		if (EDGES[i].same_edge(c)) {
+			s.piece = EDGES[i].piece;
+			
+			if (info.hasUD)
+				s.orientation = (u8) (c[0] == Color::White || c[0] == Color::Yellow) ? 0 : 1;
+			else
+				s.orientation = (u8) (c[0] == Color::Green || c[0] == Color::Blue) ? 0 : 1;
+
+			return s;
+		}
+	}
+
+	fprintf(stderr, "Invalid Edge");
+	exit(1);
+}
+
+CubeState Cube::extract_state() const
+{
+	CubeState s;
+	
+	for (int i = 0; i < 12; i++)
+		s.edges[i] = extract_edge((Edge) i);
+
+	for (int i = 0; i < 8; i++)
+		s.corners[i] = extract_corner((Corner) i);
+
+	return s;
 }
 
 bool Cube::operator==(const Cube& other) const

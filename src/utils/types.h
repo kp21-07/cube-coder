@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <type_traits>
 
 // Basic Types
 typedef uint8_t  u8;
@@ -27,14 +28,36 @@ typedef u32      rune;
 
 #define Align_Up_Power_2(val, alignment) (((val) + (alignment) - 1) & ~((alignment) - 1))
 
-// Inline placement new to avoid including <new>
+// Provide placement new only if the standard <new> header hasn't been pulled
+#if __has_include(<new>)
+#  include <new>
+#else
 inline void *operator new(size_t, void *ptr) noexcept { return ptr; }
+#endif
+
+
+//
+// Useful funcs
+//
+
+template <typename T>
+T max(T a, T b)
+{
+	return (a > b) ? a : b;
+}
+
+template <typename T>
+T min(T a, T b)
+{
+	return (a <= b) ? a : b;
+}
 
 //
 // Data Structures
 //
 
 template <typename T>
+
 struct vector {
 	T *m_data;
 	size_t m_size;
