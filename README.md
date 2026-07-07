@@ -38,3 +38,6 @@ To compile and run the solver, simply execute the included build script:
 ./build.sh
 ./bin/cube
 ```
+
+## License
+This project is open-source and available under the [MIT License](LICENSE).
