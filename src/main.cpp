@@ -1,7 +1,10 @@
 #include "test/test.h"
+#include <stdlib.h>
+#include <time.h>
 
 int main()
 {
-	test_solver(IDA_Misplaced_Stickers);
+	srand(time(NULL));
+	test_solver(IDA_Combined);
 	return 0;
 }

@@ -235,6 +235,7 @@ void test_iddfs(vector<string>& scrambles, vector<int>& depths)
 		bool expected = depths[i] > 0;
 
 		Cube cube;
+		if (alg == "rand") alg = to_string(cube.gen_random_scramble(9));
 		cube.apply_algorithm(alg);
 		printf("    scramble:  %s", alg.data());
 		printf("\n");
@@ -283,7 +284,7 @@ void test_ida(vector<string>& scrambles, Heuristic& h)
 		string alg = scrambles[i];
 
 		Cube cube;
-		if (alg == "rand") alg = to_string(cube.gen_random_scramble(10));
+		if (alg == "rand") alg = to_string(cube.gen_random_scramble(9));
 
 		cube.apply_algorithm(alg);
 		printf("    scramble:  %s", alg.data());
@@ -338,7 +339,7 @@ void test_solver(int n) {
 	// depths.push_back(0);
 
 	scrambles.push_back("rand");
-	depths.push_back(8);
+	depths.push_back(9);
 
 	switch (n)
 	{
