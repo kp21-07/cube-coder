@@ -29,10 +29,10 @@ cube-coder/
 - Bitboard Representation
 - Optimal Pruning (Pruning Tables)
 - Distance from solved Heuristic
-- A form of Biderectional search (Probably not on IDA* though)A
+- A form of Biderectional search (Probably not on IDA* though)
 
 ## How to Build and Run
-This project requires a standard C++ compiler (like `g++` or `clang++`).
+This project requires a standard C++ compiler (`clang++` or `g++`).
 To compile and run the solver, simply execute the included build script:
 ```bash
 ./build.sh
