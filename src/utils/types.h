@@ -155,6 +155,21 @@ struct vector {
 
 	void clear() { m_size = 0; }
 
+	void resize(size_t new_size, const T& val = T()) {
+		if (new_size > m_capacity) {
+			reserve(new_size);
+		}
+		if (new_size > m_size) {
+			for (size_t i = m_size; i < new_size; ++i) {
+				m_data[i] = val;
+			}
+		}
+		m_size = new_size;
+	}
+
+	T* data() { return m_data; }
+	const T* data() const { return m_data; }
+
 	size_t size() const { return m_size; }
 	bool empty() const { return m_size == 0; }
 

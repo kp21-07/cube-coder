@@ -3,7 +3,14 @@
 A fun hobby project exploring different methods to find an optimal and fast way to solve a Rubik's Cube programmatically.
 
 ## Current Performance
-The solver currently uses IDA* (Iterative Deepening A*) with a heuristic, and is actively being improved to handle deeper scrambles more efficiently. Currently, the best achieved result is solving a **9-move scramble in 22.71 seconds** (Using the Combined Heuristic).
+The solver currently uses IDA* (Iterative Deepening A*) with a heuristic, and is actively being improved to handle deeper scrambles more efficiently. The achieved results for various scramble lengths are as follows:
+
+| **Scramble Length** | **Avg Time (sec)** | **Min Time (sec)** | **Max Time (sec)** |
+| :---: | :---: |
+| 12-move scramble |  0.147 | 0.014 | 0.404 |
+| 13-move scramble |  1.832 | 0.237 | 5.047 |
+| 14-move scramble |  16.800 | 2.007 | 43.696 |
+| 15-move scramble | 198.403 | 31.753 | 573.506 |
 
 ## Project Structure
 The project is built in C++ and organized as follows:

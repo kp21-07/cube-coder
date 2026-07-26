@@ -5,17 +5,6 @@ int ZeroHeuristic::evaluate(const CubeState&) const
 	return 0;
 }
 
-int MisplacedStickers::evaluate(const Cube& cube) const
-{
-	int wrong = 0;
-	for (int f = 0; f < 6; f++)
-		for (int r = 0; r < 3; r++)
-			for (int c = 0; c < 3; c++)
-				if (cube.at(FACES[f], r, c) != FACE_COLORS[f])
-					wrong++;
-	return wrong / 8;
-}
-
 int CornerOrientation::evaluate(const CubeState& state) const
 {
 	int twisted = 0;
@@ -72,4 +61,50 @@ int CombinedHeuristic::evaluate(const CubeState& state) const
 		MisplacedPieces().evaluate(state),
 		OrientationHeuristic().evaluate(state)
 	);
+}
+
+CornerPDBHeuristic::CornerPDBHeuristic()
+{
+	if (!pdb.load("assets/corners.pdb") && !pdb.load("./assets/corners.pdb")) {
+		fprintf(stderr, "Error: Could not open assets/corners.pdb.\n");
+		exit(1);
+	}
+}
+
+int CornerPDBHeuristic::evaluate(const CubeState& state) const
+{
+	return pdb.lookup(state);
+}
+
+Edge1PDBHeuristic::Edge1PDBHeuristic()
+{
+	if (!pdb.load("assets/edge1.pdb") && !pdb.load("./assets/edge1.pdb")) {
+		fprintf(stderr, "Error: Could not open assets/edge1.pdb.\n");
+		exit(1);
+	}
+}
+
+int Edge1PDBHeuristic::evaluate(const CubeState& state) const
+{
+	return pdb.lookup(state);
+}
+
+Edge2PDBHeuristic::Edge2PDBHeuristic()
+{
+	if (!pdb.load("assets/edge2.pdb") && !pdb.load("./assets/edge2.pdb")) {
+		fprintf(stderr, "Error: Could not open assets/edge2.pdb.\n");
+		exit(1);
+	}
+}
+
+int Edge2PDBHeuristic::evaluate(const CubeState& state) const
+{
+	return pdb.lookup(state);
+}
+
+CombinedPDBHeuristic::CombinedPDBHeuristic() {}
+
+int CombinedPDBHeuristic::evaluate(const CubeState& state) const
+{
+	return max(max(corner.evaluate(state), edge1.evaluate(state)), edge2.evaluate(state));
 }

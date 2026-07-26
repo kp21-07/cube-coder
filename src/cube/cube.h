@@ -8,7 +8,7 @@ public:
 
 	void reset();
 	bool is_solved() const;
-	void print();
+	void print() const;
 
 	void apply_move(Move m);
 	void apply_moves(const vector<Move>& moves);
@@ -19,22 +19,17 @@ public:
 	void scramble(int length = 25);
 	void scramble(string s);
 
-	const Color& at(Face face, int row, int column) const;
-
-	Color facelet(const Facelet& f) const;
-	void set_facelet(const Facelet& f, Color c);
-
 	CubeState extract_state() const;
 
 	bool operator==(const Cube& other) const;
 	bool operator!=(const Cube& other) const;
 
+	void to_faces(Color out_faces[6][3][3]) const;
+
 private:
-	Color faces[6][3][3];
+	CubeState state;
 
-	void print_face_row(Face face, int row);
-
-	void rotate_face_cw(Face face);
+	void print_face_row(Color f[6][3][3], Face face, int row) const;
 
 	void U(int t = 1);
 	void D(int t = 1);
@@ -42,7 +37,4 @@ private:
 	void R(int t = 1);
 	void F(int t = 1);
 	void B(int t = 1);
-
-	CornerState extract_corner(Corner pos) const;
-	EdgeState   extract_edge  (Edge   pos) const;
 };

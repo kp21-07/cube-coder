@@ -38,14 +38,14 @@ enum class Corner {
 };
 
 enum class Edge {
-    UF, UR, UB, UL,
-    FR, BR, BL, FL,
-    DF, DR, DB, DL,
+	UF, UR, UB, UL,
+	FR, BR, BL, FL,
+	DF, DR, DB, DL,
 };
 
 struct CornerState {
-    Corner piece;
-    u8 orientation;
+	Corner piece;
+	u8 orientation;
 };
 
 struct EdgeState {

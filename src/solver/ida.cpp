@@ -7,7 +7,7 @@ int IDA_Solver::a_star(Cube& cube, int g, int bound, Move last_move, Move second
 {
 	res.states_visited++;
 
-	int h = heuristic.evaluate(cube);
+	int h = heuristic.evaluate(cube.extract_state());
 	int f = g + h;
 
 	if (f > bound)
@@ -52,7 +52,7 @@ bool IDA_Solver::solve(Cube& cube)
 	res = SearchResult{};
 	Timer timer;
 
-	int bound = heuristic.evaluate(cube);
+	int bound = heuristic.evaluate(cube.extract_state());
 
 	for(;;) {
 		res.solution.clear();

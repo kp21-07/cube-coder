@@ -3,10 +3,15 @@ set -e
 
 mkdir -p bin
 
+if [ ! -d assets ]; then
+	./gen_pdb.sh
+fi
+
 time clang++ -std=c++20 -Wall -Wextra -Wpedantic -O3 \
     src/main.cpp \
     src/cube/*.cpp \
     src/solver/*.cpp \
+    src/solver/pdb/pdb.cpp \
     src/test/*.cpp \
     -o bin/cube
 

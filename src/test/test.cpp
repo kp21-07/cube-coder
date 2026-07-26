@@ -5,6 +5,7 @@
 #include "../utils/types.h"
 #include <stdio.h>
 #include <time.h>
+#include <iostream>
 
 // -------------------------------------------------------
 // Internal helpers
@@ -223,165 +224,156 @@ void test_move_engine()
 // test_solver — IDDFS correctness
 // -------------------------------------------------------
 
-void test_iddfs(vector<string>& scrambles, vector<int>& depths)
+void test_iddfs(const string& alg, int depth)
 {
 	section("IDDFS solver");
 
-	int n = scrambles.size();
+	bool expected = depth > 0;
 
-	for (int i = 0; i < n; i++) {
-		string alg = scrambles[i];
-		int depth = abs(depths[i]);
-		bool expected = depths[i] > 0;
+	Cube cube;
+	cube.apply_algorithm(alg);
+	printf("    scramble:  %s", alg.data());
+	printf("\n");
 
-		Cube cube;
-		if (alg == "rand") alg = to_string(cube.gen_random_scramble(9));
+	int exp_sol_len = parse_alg(alg).size();
+
+	IDDFS_Solver solver;
+	bool found = solver.solve(cube, abs(depth));
+	if (expected) {
+		printf("    solution           : %s\n", to_string(solver.res.solution).data());
+
+		printf("    states visited     : %lu\n", solver.res.states_visited);
+		printf("    nodes explored     : %lu\n", solver.res.nodes_expanded);
+		printf("    children generated : %lu\n", solver.res.children_generated);
+		printf("    avg. branch factor : %.2f\n", (double) solver.res.children_generated / solver.res.nodes_expanded);
+		printf("    solution depth     : %d\n",   solver.res.depth);
+
+		printf("    elapsed time       : %.3f ms\n",    solver.res.elapsed_ms);
+		printf("    states / sec       : %.0f\n",       solver.res.states_per_sec);
+		printf("    throughput         : %.4f Mnodes/s\n", solver.res.mnodes_per_sec);
+
+		check(found, "scramble solved");
+		check((int) solver.res.solution.size() == exp_sol_len, "solution length is correct");
+
 		cube.apply_algorithm(alg);
-		printf("    scramble:  %s", alg.data());
-		printf("\n");
-
-		int exp_sol_len = parse_alg(alg).size();
-
-		IDDFS_Solver solver;
-		bool found = solver.solve(cube, depth);
-		if (expected) {
-			printf("    solution           : %s\n", to_string(solver.res.solution).data());
-
-			printf("    states visited     : %lu\n", solver.res.states_visited);
-			printf("    nodes explored     : %lu\n", solver.res.nodes_expanded);
-			printf("    children generated : %lu\n", solver.res.children_generated);
-			printf("    avg. branch factor : %.2f\n", (double) solver.res.children_generated / solver.res.nodes_expanded);
-			printf("    solution depth     : %d\n",   solver.res.depth);
-
-			printf("    elapsed time       : %.3f ms\n",    solver.res.elapsed_ms);
-			printf("    states / sec       : %.0f\n",       solver.res.states_per_sec);
-			printf("    throughput         : %.4f Mnodes/s\n", solver.res.mnodes_per_sec);
-
-			check(found, "scramble solved");
-			check((int) solver.res.solution.size() == exp_sol_len, "solution length is correct");
-
-			cube.apply_algorithm(alg);
-			cube.apply_moves(solver.res.solution);
-			check(cube.is_solved(), "cube is solved after applying solution");
-		}
-		else {
-			check(!found, "scramble failed as expected");
-		}
+		cube.apply_moves(solver.res.solution);
+		check(cube.is_solved(), "cube is solved after applying solution");
+	}
+	else {
+		check(!found, "scramble failed as expected");
+	}
 
 	printf("\n===========================================\n\n");
-	}
 }
 
-void test_ida(vector<string>& scrambles, Heuristic& h)
+// -------------------------------------------------------
+// test_solver — IDDFS correctness
+// -------------------------------------------------------
+
+void test_ida(const string& alg, Heuristic& h)
 {
 	section("IDA solver");
 
 	printf("\nUsing Heuristic : %s\n\n", h.name().data());
 
-	int n = scrambles.size();
+	Cube cube;
+	cube.apply_algorithm(alg);
+	printf("    scramble:  %s", alg.data());
+	printf("\n");
 
-	for (int i = 0; i < n; i++) {
-		string alg = scrambles[i];
+	int exp_sol_len = parse_alg(alg).size();
 
-		Cube cube;
-		if (alg == "rand") alg = to_string(cube.gen_random_scramble(9));
+	IDA_Solver solver(h);
+	bool found = solver.solve(cube);
+	printf("    solution           : %s\n", to_string(solver.res.solution).data());
 
-		cube.apply_algorithm(alg);
-		printf("    scramble:  %s", alg.data());
-		printf("\n");
+	printf("    states visited     : %lu\n", solver.res.states_visited);
+	printf("    nodes explored     : %lu\n", solver.res.nodes_expanded);
+	printf("    children generated : %lu\n", solver.res.children_generated);
+	printf("    avg. branch factor : %.2f\n", (double) solver.res.children_generated / solver.res.nodes_expanded);
+	printf("    solution depth     : %d\n",   solver.res.depth);
 
-		int exp_sol_len = parse_alg(alg).size();
+	printf("    elapsed time       : %.3f ms\n",    solver.res.elapsed_ms);
+	printf("    states / sec       : %.0f\n",       solver.res.states_per_sec);
+	printf("    throughput         : %.4f Mnodes/s\n", solver.res.mnodes_per_sec);
 
-		IDA_Solver solver(h);
-		bool found = solver.solve(cube);
-			printf("    solution           : %s\n", to_string(solver.res.solution).data());
+	check(found, "scramble solved");
+	check((int) solver.res.solution.size() == exp_sol_len, "solution length is correct");
 
-			printf("    states visited     : %lu\n", solver.res.states_visited);
-			printf("    nodes explored     : %lu\n", solver.res.nodes_expanded);
-			printf("    children generated : %lu\n", solver.res.children_generated);
-			printf("    avg. branch factor : %.2f\n", (double) solver.res.children_generated / solver.res.nodes_expanded);
-			printf("    solution depth     : %d\n",   solver.res.depth);
-
-			printf("    elapsed time       : %.3f ms\n",    solver.res.elapsed_ms);
-			printf("    states / sec       : %.0f\n",       solver.res.states_per_sec);
-			printf("    throughput         : %.4f Mnodes/s\n", solver.res.mnodes_per_sec);
-
-			check(found, "scramble solved");
-			check((int) solver.res.solution.size() == exp_sol_len, "solution length is correct");
-
-			cube.apply_algorithm(alg);
-			cube.apply_moves(solver.res.solution);
-			check(cube.is_solved(), "cube is solved after applying solution");
+	cube.apply_algorithm(alg);
+	cube.apply_moves(solver.res.solution);
+	check(cube.is_solved(), "cube is solved after applying solution");
 
 	printf("\n===========================================\n\n");
-	}
 }
-void test_solver(int n) {
-	vector<string> scrambles;
-	vector<int> depths;
+void test_solver() {
+	Cube c;
+	
+	while (true) {
+		printf("\nSelect Heuristic:\n");
+		printf("  0 = IDDFS\n");
+		printf("  1 = Zero\n");
+		printf("  2 = Orientation\n");
+		printf("  3 = Misplaced Pieces\n");
+		printf("  4 = Combined\n");
+		printf("  5 = Combined PDB\n");
+		printf(" -1 = Quit\n");
+		printf("Choice: ");
+		
+		int n;
+		if (!(std::cin >> n) || n == -1) break;
 
-	// scrambles.push_back("R");
-	// depths.push_back(1);
-	//
-	// scrambles.push_back("R U");
-	// depths.push_back(2);
-	//
-	// scrambles.push_back("R U F");
-	// depths.push_back(3);
-	//
-	// scrambles.push_back("R U R' F2");
-	// depths.push_back(-1);
-	//
-	// scrambles.push_back("R U R' U' F D2 B'");
-	// depths.push_back(7);
-	//
-	// scrambles.push_back("");
-	// depths.push_back(0);
+		while (true) {
+			printf("Enter scramble length (-1 to go back): ");
+			int len;
+			if (!(std::cin >> len) || len == -1) break;
 
-	scrambles.push_back("rand");
-	depths.push_back(9);
+			string scramble = to_string(c.gen_random_scramble(len));
 
-	switch (n)
-	{
-		case 0:
-			test_iddfs(scrambles, depths);
-			break;
+			switch (n)
+			{
+				case 0:
+					test_iddfs(scramble, len);
+					break;
 
-		case 1: {
-			ZeroHeuristic h1;
-			test_ida(scrambles, h1);
-			break;
+				case 1: {
+					ZeroHeuristic h1;
+					test_ida(scramble, h1);
+					break;
+				}
+
+				case 2: {
+					OrientationHeuristic h1;
+					test_ida(scramble, h1);
+					break;
+				}
+
+				case 3: {
+					MisplacedPieces h1;
+					test_ida(scramble, h1);
+					break;
+				}
+
+				case 4: {
+					CombinedHeuristic h1;
+					test_ida(scramble, h1);
+					break;
+				}
+
+				case 5: {
+					CombinedPDBHeuristic h1;
+					test_ida(scramble, h1);
+					break;
+				}
+
+				default:
+					printf("Invalid choice.\n");
+					break;
+			}
 		}
-
-		case 2: {
-			MisplacedStickers h1;
-			test_ida(scrambles, h1);
-			break;
-		}
-
-		case 3: {
-			OrientationHeuristic h1;
-			test_ida(scrambles, h1);
-			break;
-		}
-
-		case 4: {
-			MisplacedPieces h1;
-			test_ida(scrambles, h1);
-			break;
-		}
-
-		case 5: {
-			CombinedHeuristic h1;
-			test_ida(scrambles, h1);
-			break;
-		}
-
-		default:
-			break;
 	}
 
 	printf("\n==============================\n");
-	printf("  Results: %d passed, %d failed\n", s_pass, s_fail);
+	printf("  Overall Results: %d passed, %d failed\n", s_pass, s_fail);
 	printf("==============================\n");
 }
