@@ -43,14 +43,110 @@ enum class Edge {
 	DF, DR, DB, DL,
 };
 
-struct CornerState {
-	Corner piece;
-	u8 orientation;
+static constexpr u8 COR_PIECE_MASK = 0b00000111;
+static constexpr u8 COR_ORI_MASK   = 0b00011000;
+static constexpr u8 COR_ORI_SHIFT  = 3;
+
+class CornerState {
+private:
+	u8 data;
+
+public:
+	constexpr CornerState() : data(0) {}
+
+	constexpr CornerState(Corner piece, u8 ori)
+			: data(((u8)piece & COR_PIECE_MASK) | ((ori & 0b11) << COR_ORI_SHIFT)) {}
+
+	static constexpr CornerState solved(Corner piece)
+	{
+		return CornerState(piece, 0);
+	}
+
+	constexpr Corner piece() const
+	{
+		return (Corner)(data & COR_PIECE_MASK);
+	}
+
+	constexpr u8 orientation() const
+	{
+		return (data & COR_ORI_MASK) >> COR_ORI_SHIFT;
+	}
+
+	constexpr void set(Corner piece, u8 ori)
+	{
+		data = ((u8)piece & COR_PIECE_MASK) | ((ori & 0b11) << COR_ORI_SHIFT);
+	}
+
+	constexpr void set_piece(Corner piece)
+	{
+		data = (data & ~COR_PIECE_MASK) | ((u8)piece & COR_PIECE_MASK);
+	}
+
+	constexpr void set_orientation(u8 ori)
+	{
+		data = (data & ~COR_ORI_MASK) | ((ori & 0b11) << COR_ORI_SHIFT);
+	}
+
+	constexpr u8 raw() const
+	{
+		return data;
+	}
+
+	constexpr bool operator==(const CornerState&) const = default;
+	constexpr bool operator!=(const CornerState&) const = default;
 };
 
-struct EdgeState {
-    Edge piece;
-    u8 orientation;
+static constexpr u8 ED_PIECE_MASK = 0b00001111;
+static constexpr u8 ED_ORI_MASK   = 0b00010000;
+static constexpr u8 ED_ORI_SHIFT  = 4;
+
+class EdgeState {
+private:
+	u8 data;
+
+public:
+	constexpr EdgeState() : data(0) {}
+
+	constexpr EdgeState(Edge piece, u8 ori)
+			: data(((u8)piece & ED_PIECE_MASK) | ((ori & 1) << ED_ORI_SHIFT)) {}
+
+	static constexpr EdgeState solved(Edge piece)
+	{
+		return EdgeState(piece, 0);
+	}
+
+	constexpr Edge piece() const
+	{
+		return (Edge)(data & ED_PIECE_MASK);
+	}
+
+	constexpr u8 orientation() const
+	{
+		return (data & ED_ORI_MASK) >> ED_ORI_SHIFT;
+	}
+
+	constexpr void set(Edge piece, u8 ori)
+	{
+		data = ((u8)piece & ED_PIECE_MASK) | ((ori & 1) << ED_ORI_SHIFT);
+	}
+
+	constexpr void set_piece(Edge piece)
+	{
+		data = (data & ~ED_PIECE_MASK) | ((u8)piece & ED_PIECE_MASK);
+	}
+
+	constexpr void set_orientation(u8 ori)
+	{
+		data = (data & ~ED_ORI_MASK) | ((ori & 1) << ED_ORI_SHIFT);
+	}
+
+	constexpr u8 raw() const
+	{
+		return data;
+	}
+
+	constexpr bool operator==(const EdgeState&) const = default;
+	constexpr bool operator!=(const EdgeState&) const = default;
 };
 
 struct CubeState {

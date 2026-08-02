@@ -9,7 +9,7 @@ int CornerOrientation::evaluate(const CubeState& state) const
 {
 	int twisted = 0;
 	for (const auto& c : state.corners)
-		twisted += (c.orientation != 0);
+		twisted += (c.orientation() != 0);
 	return (twisted + 3) / 4;
 }
 
@@ -17,7 +17,7 @@ int EdgeOrientation::evaluate(const CubeState& state) const
 {
 	int flipped = 0;
 	for (const auto& c : state.edges)
-		flipped += (c.orientation != 0);
+		flipped += (c.orientation() != 0);
 	return (flipped + 3) / 4;
 }
 
@@ -33,7 +33,7 @@ int MisplacedCorners::evaluate(const CubeState& state) const
 {
 	int wrong = 0;
 	for (int i = 0; i < 8; i++)
-		if (state.corners[i].piece != (Corner)i)
+		if (state.corners[i].piece() != (Corner)i)
 			wrong++;
 	return (wrong + 3) / 4;
 }
@@ -42,7 +42,7 @@ int MisplacedEdges::evaluate(const CubeState& state) const
 {
 	int wrong = 0;
 	for (int i = 0; i < 12; i++)
-		if (state.edges[i].piece != (Edge)i)
+		if (state.edges[i].piece() != (Edge)i)
 			wrong++;
 	return (wrong + 3) / 4;
 }

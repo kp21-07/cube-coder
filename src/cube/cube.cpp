@@ -18,22 +18,20 @@ static constexpr int face_to_index(Face face) {
 void Cube::reset()
 {
 	for (int i = 0; i < 8; i++) {
-		state.corners[i].piece = (Corner)i;
-		state.corners[i].orientation = 0;
+		state.corners[i].set((Corner) i, 0);
 	}
 	for (int i = 0; i < 12; i++) {
-		state.edges[i].piece = (Edge)i;
-		state.edges[i].orientation = 0;
+		state.edges[i].set((Edge) i, 0);
 	}
 }
 
 bool Cube::is_solved() const
 {
 	for (int i = 0; i < 8; i++) {
-		if (state.corners[i].piece != (Corner)i || state.corners[i].orientation != 0) return false;
+		if (state.corners[i].piece() != (Corner)i || state.corners[i].orientation() != 0) return false;
 	}
 	for (int i = 0; i < 12; i++) {
-		if (state.edges[i].piece != (Edge)i || state.edges[i].orientation != 0) return false;
+		if (state.edges[i].piece() != (Edge)i || state.edges[i].orientation() != 0) return false;
 	}
 	return true;
 }
@@ -132,29 +130,29 @@ void Cube::R(int t)
 		CubeState t_s = state;
 
 		state.corners[0] = t_s.corners[4];
-		state.corners[0].orientation = (state.corners[0].orientation + 1) % 3;
+		state.corners[0].set_orientation((state.corners[0].orientation() + 1) % 3);
 
 		state.corners[1] = t_s.corners[0];
-		state.corners[1].orientation = (state.corners[1].orientation + 2) % 3;
+		state.corners[1].set_orientation((state.corners[1].orientation() + 2) % 3);
 
 		state.corners[4] = t_s.corners[5];
-		state.corners[4].orientation = (state.corners[4].orientation + 1) % 3;
+		state.corners[4].set_orientation((state.corners[4].orientation() + 1) % 3);
 
 		state.corners[5] = t_s.corners[1];
-		state.corners[5].orientation = (state.corners[5].orientation + 2) % 3;
+		state.corners[5].set_orientation((state.corners[5].orientation() + 2) % 3);
 
 
 		state.edges[1] = t_s.edges[4];
-		state.edges[1].orientation = (state.edges[1].orientation + 1) % 2;
+		state.edges[1].set_orientation((state.edges[1].orientation() + 1) % 2);
 
 		state.edges[4] = t_s.edges[9];
-		state.edges[4].orientation = (state.edges[4].orientation + 1) % 2;
+		state.edges[4].set_orientation((state.edges[4].orientation() + 1) % 2);
 
 		state.edges[5] = t_s.edges[1];
-		state.edges[5].orientation = (state.edges[5].orientation + 1) % 2;
+		state.edges[5].set_orientation((state.edges[5].orientation() + 1) % 2);
 
 		state.edges[9] = t_s.edges[5];
-		state.edges[9].orientation = (state.edges[9].orientation + 1) % 2;
+		state.edges[9].set_orientation((state.edges[9].orientation() + 1) % 2);
 	}
 }
 
@@ -164,29 +162,29 @@ void Cube::L(int t)
 		CubeState t_s = state;
 
 		state.corners[2] = t_s.corners[6];
-		state.corners[2].orientation = (state.corners[2].orientation + 1) % 3;
+		state.corners[2].set_orientation((state.corners[2].orientation() + 1) % 3);
 
 		state.corners[3] = t_s.corners[2];
-		state.corners[3].orientation = (state.corners[3].orientation + 2) % 3;
+		state.corners[3].set_orientation((state.corners[3].orientation() + 2) % 3);
 
 		state.corners[6] = t_s.corners[7];
-		state.corners[6].orientation = (state.corners[6].orientation + 1) % 3;
+		state.corners[6].set_orientation((state.corners[6].orientation() + 1) % 3);
 
 		state.corners[7] = t_s.corners[3];
-		state.corners[7].orientation = (state.corners[7].orientation + 2) % 3;
+		state.corners[7].set_orientation((state.corners[7].orientation() + 2) % 3);
 
 
 		state.edges[3] = t_s.edges[6];
-		state.edges[3].orientation = (state.edges[3].orientation + 1) % 2;
+		state.edges[3].set_orientation((state.edges[3].orientation() + 1) % 2);
 
 		state.edges[6] = t_s.edges[11];
-		state.edges[6].orientation = (state.edges[6].orientation + 1) % 2;
+		state.edges[6].set_orientation((state.edges[6].orientation() + 1) % 2);
 
 		state.edges[7] = t_s.edges[3];
-		state.edges[7].orientation = (state.edges[7].orientation + 1) % 2;
+		state.edges[7].set_orientation((state.edges[7].orientation() + 1) % 2);
 
 		state.edges[11] = t_s.edges[7];
-		state.edges[11].orientation = (state.edges[11].orientation + 1) % 2;
+		state.edges[11].set_orientation((state.edges[11].orientation() + 1) % 2);
 	}
 }
 
@@ -196,26 +194,26 @@ void Cube::F(int t)
 		CubeState t_s = state;
 
 		state.corners[0] = t_s.corners[3];
-		state.corners[0].orientation = (state.corners[0].orientation + 2) % 3;
+		state.corners[0].set_orientation((state.corners[0].orientation() + 2) % 3);
 		
 		state.corners[3] = t_s.corners[7];
-		state.corners[3].orientation = (state.corners[3].orientation + 1) % 3;
+		state.corners[3].set_orientation((state.corners[3].orientation() + 1) % 3);
 		
 		state.corners[4] = t_s.corners[0];
-		state.corners[4].orientation = (state.corners[4].orientation + 2) % 3;
+		state.corners[4].set_orientation((state.corners[4].orientation() + 2) % 3);
 		
 		state.corners[7] = t_s.corners[4];
-		state.corners[7].orientation = (state.corners[7].orientation + 1) % 3;
+		state.corners[7].set_orientation((state.corners[7].orientation() + 1) % 3);
 		
 
 		state.edges[0] = t_s.edges[7];
-		state.edges[0].orientation = (state.edges[0].orientation + 1) % 2;
+		state.edges[0].set_orientation((state.edges[0].orientation() + 1) % 2);
 		
 		state.edges[4] = t_s.edges[0];
 		state.edges[7] = t_s.edges[8];
 		
 		state.edges[8] = t_s.edges[4];
-		state.edges[8].orientation = (state.edges[8].orientation + 1) % 2;
+		state.edges[8].set_orientation((state.edges[8].orientation() + 1) % 2);
 	}
 }
 
@@ -225,26 +223,26 @@ void Cube::B(int t)
 		CubeState t_s = state;
 		
 		state.corners[1] = t_s.corners[5];
-		state.corners[1].orientation = (state.corners[1].orientation + 1) % 3;
+		state.corners[1].set_orientation((state.corners[1].orientation() + 1) % 3);
 		
 		state.corners[2] = t_s.corners[1];
-		state.corners[2].orientation = (state.corners[2].orientation + 2) % 3;
+		state.corners[2].set_orientation((state.corners[2].orientation() + 2) % 3);
 		
 		state.corners[5] = t_s.corners[6];
-		state.corners[5].orientation = (state.corners[5].orientation + 1) % 3;
+		state.corners[5].set_orientation((state.corners[5].orientation() + 1) % 3);
 		
 		state.corners[6] = t_s.corners[2];
-		state.corners[6].orientation = (state.corners[6].orientation + 2) % 3;
+		state.corners[6].set_orientation((state.corners[6].orientation() + 2) % 3);
 		
 
 		state.edges[2] = t_s.edges[5];
-		state.edges[2].orientation = (state.edges[2].orientation + 1) % 2;
+		state.edges[2].set_orientation((state.edges[2].orientation() + 1) % 2);
 		
 		state.edges[5] = t_s.edges[10];
 		state.edges[6] = t_s.edges[2];
 		
 		state.edges[10] = t_s.edges[6];
-		state.edges[10].orientation = (state.edges[10].orientation + 1) % 2;
+		state.edges[10].set_orientation((state.edges[10].orientation() + 1) % 2);
 	}
 }
 
@@ -345,10 +343,10 @@ CubeState Cube::extract_state() const
 bool Cube::operator==(const Cube& other) const
 {
 	for (int i = 0; i < 8; i++) {
-		if (state.corners[i].piece != other.state.corners[i].piece || state.corners[i].orientation != other.state.corners[i].orientation) return false;
+		if (state.corners[i].piece() != other.state.corners[i].piece() || state.corners[i].orientation() != other.state.corners[i].orientation()) return false;
 	}
 	for (int i = 0; i < 12; i++) {
-		if (state.edges[i].piece != other.state.edges[i].piece || state.edges[i].orientation != other.state.edges[i].orientation) return false;
+		if (state.edges[i].piece() != other.state.edges[i].piece() || state.edges[i].orientation() != other.state.edges[i].orientation()) return false;
 	}
 	return true;
 }
@@ -383,16 +381,16 @@ void Cube::to_faces(Color out_faces[6][3][3]) const
     for (int i = 0; i < 8; i++) {
         CornerState cs = state.corners[i];
         for (int k = 0; k < 3; k++) {
-            Facelet f = CORNERS[i].facelets[(k + cs.orientation) % 3];
-            out_faces[face_to_index(f.face)][f.row][f.col] = CORNERS[(int)cs.piece].solved[k];
+            Facelet f = CORNERS[i].facelets[(k + cs.orientation()) % 3];
+            out_faces[face_to_index(f.face)][f.row][f.col] = CORNERS[(int)cs.piece()].solved[k];
         }
     }
 
     for (int i = 0; i < 12; i++) {
         EdgeState es = state.edges[i];
         for (int k = 0; k < 2; k++) {
-            Facelet f = EDGES[i].facelets[(k + es.orientation) % 2];
-            out_faces[face_to_index(f.face)][f.row][f.col] = EDGES[(int)es.piece].solved[k];
+            Facelet f = EDGES[i].facelets[(k + es.orientation()) % 2];
+            out_faces[face_to_index(f.face)][f.row][f.col] = EDGES[(int)es.piece()].solved[k];
         }
     }
 }

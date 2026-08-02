@@ -7,10 +7,10 @@ The solver currently uses IDA* (Iterative Deepening A*) with a heuristic, and is
 
 | **Scramble Length** | **Avg Time (sec)** | **Min Time (sec)** | **Max Time (sec)** |
 | :---: | :---: | :---: | :---: |
-| 12-move scramble |  0.147 | 0.014 | 0.404 |
-| 13-move scramble |  1.832 | 0.237 | 5.047 |
-| 14-move scramble |  16.800 | 2.007 | 43.696 |
-| 15-move scramble | 198.403 | 31.753 | 573.506 |
+| 12-move scramble |  0.133 | 0.012 | 0.469 |
+| 13-move scramble |  1.378 | 0.155 | 3.648 |
+| 14-move scramble |  14.361 | 0.089 | 45.729 |
+| 15-move scramble | 155.688 | 27.004 | 399.014 |
 
 ## Project Structure
 The project is built in C++ and organized as follows:

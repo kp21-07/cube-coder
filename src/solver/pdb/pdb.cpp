@@ -19,7 +19,7 @@ bool CornerPDB::load(const char* path) {
 u32 CornerPDB::get_index(const CubeState& state) {
     u32 ori_idx = 0;
     for (int i = 0; i < 7; i++) {
-        ori_idx = ori_idx * 3 + state.corners[i].orientation;
+        ori_idx = ori_idx * 3 + state.corners[i].orientation();
     }
     
     u32 perm_idx = 0;
@@ -28,7 +28,7 @@ u32 CornerPDB::get_index(const CubeState& state) {
     for (int i = 0; i < 7; i++) {
         int count = 0;
         for (int j = i + 1; j < 8; j++) {
-            if ((int) state.corners[j].piece < (int) state.corners[i].piece)
+            if ((int) state.corners[j].piece() < (int) state.corners[i].piece())
                 count++;
         }
         perm_idx += count * factorials[i];
@@ -62,10 +62,10 @@ u32 Edge1PDB::get_index(const CubeState& state) {
     int pos[6];
     int orient[6];
     for (int i = 0; i < 12; i++) {
-        int p = (int)state.edges[i].piece;
+        int p = (int)state.edges[i].piece();
         if (p >= 0 && p < 6) {
             pos[p] = i;
-            orient[p] = state.edges[i].orientation;
+            orient[p] = state.edges[i].orientation();
         }
     }
     
@@ -115,10 +115,10 @@ u32 Edge2PDB::get_index(const CubeState& state) {
     int pos[6];
     int orient[6];
     for (int i = 0; i < 12; i++) {
-        int p = (int)state.edges[i].piece;
+        int p = (int)state.edges[i].piece();
         if (p >= 6 && p < 12) {
             pos[p - 6] = i;
-            orient[p - 6] = state.edges[i].orientation;
+            orient[p - 6] = state.edges[i].orientation();
         }
     }
     

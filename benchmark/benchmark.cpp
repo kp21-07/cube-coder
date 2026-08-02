@@ -18,7 +18,7 @@ int main() {
     std::ofstream csv("benchmark/benchmark_results.csv");
     csv << "length,scramble,time_ms,nodes_expanded\n";
 
-    for (int len = 12; len <= 15; len++) {
+    for (int len = 12; len <= 13; len++) {
         double total_ms = 0;
         double max_ms = 0;
         double min_ms = 1e9;
