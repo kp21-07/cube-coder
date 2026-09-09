@@ -57,7 +57,6 @@ T min(T a, T b)
 //
 
 template <typename T>
-
 struct vector {
 	T *m_data;
 	size_t m_size;
@@ -337,4 +336,140 @@ struct string {
 		}
 		return result;
 	}
+};
+
+template <typename T>
+struct queue {
+    T *m_data;
+    size_t m_head;
+    size_t m_tail;
+    size_t m_size;
+    size_t m_capacity;
+
+    queue() : m_data(nullptr), m_head(0), m_tail(0), m_size(0), m_capacity(0) {}
+
+    ~queue() {
+        delete[] m_data;
+    }
+
+    queue(const queue& other) 
+        : m_data(nullptr), m_head(0), m_tail(0), m_size(0), m_capacity(0) {
+        if (other.m_capacity > 0) {
+            m_data = new T[other.m_capacity];
+            m_capacity = other.m_capacity;
+            m_size = other.m_size;
+            for (size_t i = 0; i < m_size; ++i) {
+                m_data[i] = other.m_data[(other.m_head + i) % other.m_capacity];
+            }
+            m_head = 0;
+            m_tail = m_size;
+        }
+    }
+
+    queue& operator=(const queue& other) {
+        if (this != &other) {
+            delete[] m_data;
+            m_data = nullptr;
+            m_head = 0;
+            m_tail = 0;
+            m_size = 0;
+            m_capacity = 0;
+            if (other.m_capacity > 0) {
+                m_data = new T[other.m_capacity];
+                m_capacity = other.m_capacity;
+                m_size = other.m_size;
+                for (size_t i = 0; i < m_size; ++i) {
+                    m_data[i] = other.m_data[(other.m_head + i) % other.m_capacity];
+                }
+                m_head = 0;
+                m_tail = m_size;
+            }
+        }
+        return *this;
+    }
+
+    queue(queue&& other) noexcept 
+        : m_data(other.m_data), m_head(other.m_head), m_tail(other.m_tail), 
+          m_size(other.m_size), m_capacity(other.m_capacity) {
+        other.m_data = nullptr;
+        other.m_head = 0;
+        other.m_tail = 0;
+        other.m_size = 0;
+        other.m_capacity = 0;
+    }
+
+    queue& operator=(queue&& other) noexcept {
+        if (this != &other) {
+            delete[] m_data;
+            m_data = other.m_data;
+            m_head = other.m_head;
+            m_tail = other.m_tail;
+            m_size = other.m_size;
+            m_capacity = other.m_capacity;
+
+            other.m_data = nullptr;
+            other.m_head = 0;
+            other.m_tail = 0;
+            other.m_size = 0;
+            other.m_capacity = 0;
+        }
+        return *this;
+    }
+
+    void reserve(size_t new_cap) {
+        if (new_cap <= m_capacity) return;
+        T *new_data = new T[new_cap];
+        for (size_t i = 0; i < m_size; ++i) {
+            new_data[i] = static_cast<T&&>(m_data[(m_head + i) % m_capacity]);
+        }
+        delete[] m_data;
+        m_data = new_data;
+        m_head = 0;
+        m_tail = m_size;
+        m_capacity = new_cap;
+    }
+
+    void push(const T& val) {
+        if (m_size >= m_capacity) {
+            reserve(m_capacity == 0 ? 16 : m_capacity * 2);
+        }
+        m_data[m_tail] = val;
+        m_tail = (m_tail + 1) % m_capacity;
+        m_size++;
+    }
+
+    void push(T&& val) {
+        if (m_size >= m_capacity) {
+            reserve(m_capacity == 0 ? 16 : m_capacity * 2);
+        }
+        m_data[m_tail] = static_cast<T&&>(val);
+        m_tail = (m_tail + 1) % m_capacity;
+        m_size++;
+    }
+
+    void pop() {
+        if (m_size > 0) {
+            m_head = (m_head + 1) % m_capacity;
+            m_size--;
+            if (m_size == 0) {
+                m_head = 0;
+                m_tail = 0;
+            }
+        }
+    }
+
+    T& front() { return m_data[m_head]; }
+    const T& front() const { return m_data[m_head]; }
+
+    T& back() { return m_data[(m_tail + m_capacity - 1) % m_capacity]; }
+    const T& back() const { return m_data[(m_tail + m_capacity - 1) % m_capacity]; }
+
+    void clear() {
+        m_size = 0;
+        m_head = 0;
+        m_tail = 0;
+    }
+
+    size_t size() const { return m_size; }
+    bool empty() const { return m_size == 0; }
 };

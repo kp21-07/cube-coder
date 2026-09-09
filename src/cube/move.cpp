@@ -1,4 +1,4 @@
-#include "move.h"
+#include "cube.h"
 
 static Move parse_move(string token)
 {

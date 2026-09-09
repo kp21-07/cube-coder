@@ -1,283 +1,120 @@
 #include "cube.h"
-#include "cubie.h"
-#include <stdio.h>
+/*
+╔═══════════════════════════════════════════════════════════════╗
+║                             UTILS                             ║
+╚═══════════════════════════════════════════════════════════════╝
+*/
 
 Cube::Cube() { reset(); }
 
-static constexpr int face_to_index(Face face) {
-	switch (face)
-	{
-		case Face::Up    : return 0;
-		case Face::Down  : return 1;
-		case Face::Front : return 2;
-		case Face::Back  : return 3;
-		case Face::Left  : return 4;
-		case Face::Right : return 5;
-	}
-}
 void Cube::reset()
 {
 	for (int i = 0; i < 8; i++) {
-		state.corners[i].set((Corner) i, 0);
+		state.cp[i] = i;
+		state.co[i] = 0;
 	}
 	for (int i = 0; i < 12; i++) {
-		state.edges[i].set((Edge) i, 0);
+		state.ep[i] = i;
+		state.eo[i] = 0;
 	}
 }
 
-bool Cube::is_solved() const
+bool Cube::is_solved() const 
+{
+    for (int i = 0; i < 8; i++) {
+        if (state.cp[i] != i || state.co[i] != 0) return false;
+    }
+    for (int i = 0; i < 12; i++) {
+        if (state.ep[i] != i || state.eo[i] != 0) return false;
+    }
+    return true;
+}
+
+/*
+╔═══════════════════════════════════════════════════════════════╗
+║                        MOVE FUNCTIONS                         ║
+╚═══════════════════════════════════════════════════════════════╝
+*/
+
+void Cube::multiply(const CubeState& a, const CubeState& b, CubeState& result)
 {
 	for (int i = 0; i < 8; i++) {
-		if (state.corners[i].piece() != (Corner)i || state.corners[i].orientation() != 0) return false;
+		result.cp[i] = a.cp[b.cp[i]];
+		result.co[i] = (a.co[b.cp[i]] + b.co[i]) % 3;
 	}
+
 	for (int i = 0; i < 12; i++) {
-		if (state.edges[i].piece() != (Edge)i || state.edges[i].orientation() != 0) return false;
-	}
-	return true;
-}
-
-static char color_to_char(Color c)
-{
-	switch (c)
-	{
-		case Color::White  : return 'W';
-		case Color::Yellow : return 'Y';
-		case Color::Green  : return 'G';
-		case Color::Blue   : return 'B';
-		case Color::Orange : return 'O';
-		case Color::Red    : return 'R';
-	}
-
-	return '?';
-}
-
-void Cube::print_face_row(Color f[6][3][3], Face face, int row) const
-{
-	for (int c = 0; c < 3; c++)
-	{
-		printf("%c ", color_to_char(f[face_to_index(face)][row][c]));
-	}
-		printf(" ");
-}
-
-void Cube::print() const
-{
-	Color f[6][3][3];
-	to_faces(f);
-
-	for (int r = 0; r < 3; r++) {
-		printf("       ");
-		print_face_row(f, Face::Up, r);
-		printf("\n");
-	}
-	printf("\n");
-
-	for (int r = 0; r < 3; r++) {
-		print_face_row(f, Face::Left, r);
-		print_face_row(f, Face::Front, r);
-		print_face_row(f, Face::Right, r);
-		print_face_row(f, Face::Back, r);
-		printf("\n");
-	}
-	printf("\n");
-
-	for (int r = 0; r < 3; r++) {
-		printf("       ");
-		print_face_row(f, Face::Down, r);
-		printf("\n");
-	}
-	printf("\n");
-	printf("\n");
-}
-
-void Cube::U(int t)
-{
-	while (t--) {
-		CubeState t_s = state;
-
-		state.corners[0] = t_s.corners[1];
-		state.corners[1] = t_s.corners[2];
-		state.corners[2] = t_s.corners[3];
-		state.corners[3] = t_s.corners[0];
-
-		state.edges[0] = t_s.edges[1];
-		state.edges[1] = t_s.edges[2];
-		state.edges[2] = t_s.edges[3];
-		state.edges[3] = t_s.edges[0];
+		result.ep[i] = a.ep[b.ep[i]];
+		result.eo[i] = (a.eo[b.ep[i]] + b.eo[i]) % 2;
 	}
 }
 
-void Cube::D(int t)
+static const CubeState BASIC_MOVES[6] =
 {
-	while (t--) {
-		CubeState t_s = state;
+    // U Move (Face 0)
+    {
+        { 3, 0, 1, 2, 4, 5, 6, 7 }, // cp: UBR->URF, URF->UFL, UFL->ULB, ULB->UBR
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, // co: all 0
+        { 3, 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11 }, // ep: UB->UR, UR->UF, UF->UL, UL->UB
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }    // eo: all 0
+    },
+    // R Move (Face 1)
+    {
+        { 4, 1, 2, 0, 7, 5, 6, 3 }, // cp
+        { 2, 0, 0, 1, 1, 0, 0, 2 }, // co: U/D axis twists
+        { 8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0 }, // ep
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }    // eo: all 0
+    },
+    // F Move (Face 2)
+    {
+        { 1, 5, 2, 3, 0, 4, 6, 7 }, // cp
+        { 1, 2, 0, 0, 2, 1, 0, 0 }, // co
+        { 0, 9, 2, 3, 4, 8, 6, 7, 1, 5, 10, 11 }, // ep
+        { 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0 }    // eo: 4 edges flipped
+    },
+    // D Move (Face 3)
+    {
+        { 0, 1, 2, 3, 5, 6, 7, 4 }, // cp
+        { 0, 0, 0, 0, 0, 0, 0, 0 }, // co
+        { 0, 1, 2, 3, 5, 6, 7, 4, 8, 9, 10, 11 }, // ep
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }    // eo
+    },
+    // L Move (Face 4)
+    {
+        { 0, 2, 6, 3, 4, 1, 5, 7 }, // cp
+        { 0, 1, 2, 0, 0, 2, 1, 0 }, // co
+        { 0, 1, 10, 3, 4, 5, 9, 7, 8, 2, 6, 11 }, // ep
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }    // eo: all 0
+    },
+    // B Move (Face 5)
+    {
+        { 0, 1, 3, 7, 4, 5, 2, 6 }, // cp
+        { 0, 0, 1, 2, 0, 0, 2, 1 }, // co
+        { 0, 1, 2, 11, 4, 5, 6, 10, 8, 9, 3, 7 }, // ep
+        { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1 }    // eo: 4 edges flipped
+    }
+};
 
-		state.corners[4] = t_s.corners[7];
-		state.corners[5] = t_s.corners[4];
-		state.corners[6] = t_s.corners[5];
-		state.corners[7] = t_s.corners[6];
+CubeState Cube::MOVE_TRANSFORMS[18];
 
-		state.edges[8] = t_s.edges[11];
-		state.edges[9] = t_s.edges[8];
-		state.edges[10] = t_s.edges[9];
-		state.edges[11] = t_s.edges[10];
-	}
-}
-
-void Cube::R(int t)
+void Cube::init_move_transforms()
 {
-	while (t--) {
-		CubeState t_s = state;
-
-		state.corners[0] = t_s.corners[4];
-		state.corners[0].set_orientation((state.corners[0].orientation() + 1) % 3);
-
-		state.corners[1] = t_s.corners[0];
-		state.corners[1].set_orientation((state.corners[1].orientation() + 2) % 3);
-
-		state.corners[4] = t_s.corners[5];
-		state.corners[4].set_orientation((state.corners[4].orientation() + 1) % 3);
-
-		state.corners[5] = t_s.corners[1];
-		state.corners[5].set_orientation((state.corners[5].orientation() + 2) % 3);
-
-
-		state.edges[1] = t_s.edges[4];
-		state.edges[1].set_orientation((state.edges[1].orientation() + 1) % 2);
-
-		state.edges[4] = t_s.edges[9];
-		state.edges[4].set_orientation((state.edges[4].orientation() + 1) % 2);
-
-		state.edges[5] = t_s.edges[1];
-		state.edges[5].set_orientation((state.edges[5].orientation() + 1) % 2);
-
-		state.edges[9] = t_s.edges[5];
-		state.edges[9].set_orientation((state.edges[9].orientation() + 1) % 2);
-	}
-}
-
-void Cube::L(int t)
-{
-	while (t--) {
-		CubeState t_s = state;
-
-		state.corners[2] = t_s.corners[6];
-		state.corners[2].set_orientation((state.corners[2].orientation() + 1) % 3);
-
-		state.corners[3] = t_s.corners[2];
-		state.corners[3].set_orientation((state.corners[3].orientation() + 2) % 3);
-
-		state.corners[6] = t_s.corners[7];
-		state.corners[6].set_orientation((state.corners[6].orientation() + 1) % 3);
-
-		state.corners[7] = t_s.corners[3];
-		state.corners[7].set_orientation((state.corners[7].orientation() + 2) % 3);
-
-
-		state.edges[3] = t_s.edges[6];
-		state.edges[3].set_orientation((state.edges[3].orientation() + 1) % 2);
-
-		state.edges[6] = t_s.edges[11];
-		state.edges[6].set_orientation((state.edges[6].orientation() + 1) % 2);
-
-		state.edges[7] = t_s.edges[3];
-		state.edges[7].set_orientation((state.edges[7].orientation() + 1) % 2);
-
-		state.edges[11] = t_s.edges[7];
-		state.edges[11].set_orientation((state.edges[11].orientation() + 1) % 2);
-	}
-}
-
-void Cube::F(int t)
-{
-	while (t--) {
-		CubeState t_s = state;
-
-		state.corners[0] = t_s.corners[3];
-		state.corners[0].set_orientation((state.corners[0].orientation() + 2) % 3);
-		
-		state.corners[3] = t_s.corners[7];
-		state.corners[3].set_orientation((state.corners[3].orientation() + 1) % 3);
-		
-		state.corners[4] = t_s.corners[0];
-		state.corners[4].set_orientation((state.corners[4].orientation() + 2) % 3);
-		
-		state.corners[7] = t_s.corners[4];
-		state.corners[7].set_orientation((state.corners[7].orientation() + 1) % 3);
-		
-
-		state.edges[0] = t_s.edges[7];
-		state.edges[0].set_orientation((state.edges[0].orientation() + 1) % 2);
-		
-		state.edges[4] = t_s.edges[0];
-		state.edges[7] = t_s.edges[8];
-		
-		state.edges[8] = t_s.edges[4];
-		state.edges[8].set_orientation((state.edges[8].orientation() + 1) % 2);
-	}
-}
-
-void Cube::B(int t)
-{
-	while (t--) {
-		CubeState t_s = state;
-		
-		state.corners[1] = t_s.corners[5];
-		state.corners[1].set_orientation((state.corners[1].orientation() + 1) % 3);
-		
-		state.corners[2] = t_s.corners[1];
-		state.corners[2].set_orientation((state.corners[2].orientation() + 2) % 3);
-		
-		state.corners[5] = t_s.corners[6];
-		state.corners[5].set_orientation((state.corners[5].orientation() + 1) % 3);
-		
-		state.corners[6] = t_s.corners[2];
-		state.corners[6].set_orientation((state.corners[6].orientation() + 2) % 3);
-		
-
-		state.edges[2] = t_s.edges[5];
-		state.edges[2].set_orientation((state.edges[2].orientation() + 1) % 2);
-		
-		state.edges[5] = t_s.edges[10];
-		state.edges[6] = t_s.edges[2];
-		
-		state.edges[10] = t_s.edges[6];
-		state.edges[10].set_orientation((state.edges[10].orientation() + 1) % 2);
-	}
+    static bool initialized = false;
+    if (initialized) return;
+    // For each face: Move = basic, Move2 = Move * Move, MovePrime = Move2 * Move
+    for (int f = 0; f < 6; f++) {
+        MOVE_TRANSFORMS[f * 3 + 0] = BASIC_MOVES[f];
+        multiply(BASIC_MOVES[f], BASIC_MOVES[f], MOVE_TRANSFORMS[f * 3 + 2]); // Move2
+        multiply(MOVE_TRANSFORMS[f * 3 + 2], BASIC_MOVES[f], MOVE_TRANSFORMS[f * 3 + 1]); // MovePrime
+    }
+    initialized = true;
 }
 
 void Cube::apply_move(Move m)
 {
-	switch (m)
-	{
-		case Move::U:       return U(1);
-		case Move::U2:      return U(2);
-		case Move::U_Prime: return U(3);
-
-		case Move::R:       return R(1);
-		case Move::R2:      return R(2);
-		case Move::R_Prime: return R(3);
-
-		case Move::F:       return F(1);
-		case Move::F2:      return F(2);
-		case Move::F_Prime: return F(3);
-
-		case Move::D:       return D(1);
-		case Move::D2:      return D(2);
-		case Move::D_Prime: return D(3);
-
-		case Move::L:       return L(1);
-		case Move::L2:      return L(2);
-		case Move::L_Prime: return L(3);
-
-		case Move::B:       return B(1);
-		case Move::B2:      return B(2);
-		case Move::B_Prime: return B(3);
-
-		default:
-			fprintf(stderr, "apply_move: unrecognized Move value %u\n", (u32)m);
-			exit(1);
-	}
+    CubeState next;
+    multiply(state, MOVE_TRANSFORMS[(int)m], next);
+    state = next;
 }
 
 void Cube::apply_moves(const vector<Move>& moves)
@@ -335,62 +172,227 @@ void Cube::scramble(string alg)
 	apply_algorithm(alg);
 }
 
-CubeState Cube::extract_state() const
+
+/*
+╔═══════════════════════════════════════════════════════════════╗
+║                      GETTERS AND SETTERS                      ║
+╚═══════════════════════════════════════════════════════════════╝
+*/
+
+// --- Phase 1 ---
+u16 Cube::get_twist() const
 {
-	return state;
+    u16 twist = 0;
+    for (int i = 0; i < 7; i++) twist = twist * 3 + state.co[i];
+    return twist;
 }
+
+u16 Cube::get_flip() const
+{
+    u16 flip = 0;
+    for (int i = 0; i < 11; i++) flip = flip * 2 + state.eo[i];
+    return flip;
+}
+
+u16 Cube::get_uds_slice() const
+{
+    u16 slice = 0;
+    int k = 3;
+	static const int C[12][5] = {
+		{1},{1,1},{1,2,1},{1,3,3,1},{1,4,6,4,1},
+		{1,5,10,10,5},{1,6,15,20,15},{1,7,21,35,35},
+		{1,8,28,56,70},{1,9,36,84,126},{1,10,45,120,210},
+		{1,11,55,165,330}
+	};
+    for (int i = 11; i >= 0 && k >= 0; i--) {
+        if (state.ep[i] >= 8) { // Is an E-slice edge
+            k--;
+        } else {
+            // Add C(i, k)
+            if (k >= 0) slice += C[i][k];
+        }
+    }
+    return slice;
+}
+
+void Cube::set_twist(u16 twist)
+{
+    reset();
+	int sum = 0;
+	
+	for (int i = 6; i >= 0; i--) {
+		state.co[i] = twist%3;
+		twist /= 3;
+		sum += state.co[i];
+	}
+	
+	state.co[7] = (3 - (sum%3)) % 3;
+}
+
+void Cube::set_flip(u16 twist)
+{
+    reset();
+	int sum = 0;
+	
+	for (int i = 10; i >= 0; i--) {
+		state.eo[i] = twist%2;
+		twist /= 2;
+		sum += state.eo[i];
+	}
+	
+	state.eo[11] = (2 - (sum%2)) % 2;
+}
+
+void Cube::set_uds_slice(u16 slice)
+{
+    reset();
+    int k = 3;
+	static const int C[12][5] = {
+		{1},{1,1},{1,2,1},{1,3,3,1},{1,4,6,4,1},
+		{1,5,10,10,5},{1,6,15,20,15},{1,7,21,35,35},
+		{1,8,28,56,70},{1,9,36,84,126},{1,10,45,120,210},
+		{1,11,55,165,330}
+	};
+
+	int e_edge = 8;
+	int nor_edge = 0;
+    for (int i = 11; i >= 0; i--) {
+		if (k >= 0 && slice < C[i][k]) {
+			state.ep[i] = e_edge++;
+			k--;
+		}
+		else {
+			if (k >= 0) slice -= C[i][k];
+			state.ep[i] = nor_edge++;
+		}
+	}
+}
+
+// --- Phase 2 ---
+u16 Cube::get_corner_perm() const
+{
+    // Lehmer code for 8 corners
+    u16 cp_idx = 0;
+    static const int FACT[8] = { 5040, 720, 120, 24, 6, 2, 1, 1 };
+    
+	for (int i = 0; i < 7; i++) {
+        int count = 0;
+        for (int j = i + 1; j < 8; j++)
+            if (state.cp[j] < state.cp[i]) count++;
+    
+		cp_idx += count * FACT[i];
+    }
+    
+	return cp_idx;
+}
+
+u16 Cube::get_ud_edges_perm() const
+{
+    // Lehmer code for the 8 U/D edges (0..7)
+    u16 ep_idx = 0;
+    static const int FACT[8] = { 5040, 720, 120, 24, 6, 2, 1, 1 };
+    
+	for (int i = 0; i < 7; i++) {
+        int count = 0;
+        for (int j = i + 1; j < 8; j++)
+            if (state.ep[j] < state.ep[i]) count++;
+    
+		ep_idx += count * FACT[i];
+    }
+    
+	return ep_idx;
+}
+
+u8 Cube::get_slice_perm() const
+{
+    // Lehmer code for the 4 E-slice edges (8..11)
+    u8 sep = 0;
+    static const int FACT[4] = { 6, 2, 1, 1 };
+
+    for (int i = 8; i < 11; i++) {
+        int count = 0;
+        for (int j = i + 1; j < 12; j++)
+            if (state.ep[j] < state.ep[i]) count++;
+
+        sep += count * FACT[i - 8];
+    }
+
+    return sep;
+}
+
+void Cube::set_corner_perm(u16 cp)
+{
+    reset();
+    static const int FACT[8] = { 5040, 720, 120, 24, 6, 2, 1, 1 };
+	int available[8] = {0,1,2,3,4,5,6,7};
+
+	for (int i = 0; i < 7; i++) {
+		int count = cp / FACT[i];
+		cp %= FACT[i];
+		state.cp[i] = available[count];
+
+		for (int j = count; j < 7-i; j++) available[j] = available[j+1];
+	}
+
+	state.cp[7] = available[0];
+}
+
+void Cube::set_ud_edges_perm(u16 ep)
+{
+    reset();
+    static const int FACT[8] = { 5040, 720, 120, 24, 6, 2, 1, 1 };
+	int available[8] = {0,1,2,3,4,5,6,7};
+
+	for (int i = 0; i < 7; i++) {
+		int count = ep / FACT[i];
+		ep %= FACT[i];
+		state.ep[i] = available[count];
+
+		for (int j = count; j < 7-i; j++) available[j] = available[j+1];
+	}
+
+	state.ep[7] = available[0];
+}
+
+void Cube::set_slice_perm(u8 ep)
+{
+    reset();
+    static const int FACT[4] = { 6, 2, 1, 1 };
+	int available[4] = {8,9,10,11};
+
+	for (int i = 8; i < 11; i++) {
+		int count = ep / FACT[i-8];
+		ep %= FACT[i-8];
+		state.ep[i] = available[count];
+
+		for (int j = count; j < 11-i; j++) available[j] = available[j+1];
+	}
+
+	state.ep[11] = available[0];
+}
+
+/*
+╔═══════════════════════════════════════════════════════════════╗
+║                     OPERATOR OVERLOADING                      ║
+╚═══════════════════════════════════════════════════════════════╝
+*/
 
 bool Cube::operator==(const Cube& other) const
 {
-	for (int i = 0; i < 8; i++) {
-		if (state.corners[i].piece() != other.state.corners[i].piece() || state.corners[i].orientation() != other.state.corners[i].orientation()) return false;
+    for (int i = 0; i < 8; i++) {
+        if (state.co[i] != other.state.co[i]) return false;
+		if (state.cp[i] != other.state.cp[i]) return false;
 	}
-	for (int i = 0; i < 12; i++) {
-		if (state.edges[i].piece() != other.state.edges[i].piece() || state.edges[i].orientation() != other.state.edges[i].orientation()) return false;
+
+    for (int i = 0; i < 12; i++) {
+        if (state.eo[i] != other.state.eo[i]) return false;
+		if (state.ep[i] != other.state.ep[i]) return false;
 	}
-	return true;
+
+    return true;
 }
 
 bool Cube::operator!=(const Cube& other) const
 {
-	return !(*this == other);
-}
-
-void Cube::to_faces(Color out_faces[6][3][3]) const
-{
-    for (int f = 0; f < 6; f++) {
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                out_faces[f][r][c] = FACE_COLORS[f];
-            }
-        }
-    }
-
-    auto face_to_index = [](Face face) {
-        switch (face) {
-            case Face::Up    : return 0;
-            case Face::Down  : return 1;
-            case Face::Front : return 2;
-            case Face::Back  : return 3;
-            case Face::Left  : return 4;
-            case Face::Right : return 5;
-        }
-        return 0;
-    };
-
-    for (int i = 0; i < 8; i++) {
-        CornerState cs = state.corners[i];
-        for (int k = 0; k < 3; k++) {
-            Facelet f = CORNERS[i].facelets[(k + cs.orientation()) % 3];
-            out_faces[face_to_index(f.face)][f.row][f.col] = CORNERS[(int)cs.piece()].solved[k];
-        }
-    }
-
-    for (int i = 0; i < 12; i++) {
-        EdgeState es = state.edges[i];
-        for (int k = 0; k < 2; k++) {
-            Facelet f = EDGES[i].facelets[(k + es.orientation()) % 2];
-            out_faces[face_to_index(f.face)][f.row][f.col] = EDGES[(int)es.piece()].solved[k];
-        }
-    }
+    return !(*this == other);
 }
