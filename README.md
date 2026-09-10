@@ -19,9 +19,9 @@ The initial solver relied on single-phase IDA* search with basic heuristics. Whi
 ### Kociemba Two-Phase Algorithm (Current)
 By transitioning to Kociemba's Two-Phase Algorithm using precomputed coordinate move tables and nibble-packed BFS pruning tables (~1M entries per Phase 1 table), the solver now resolves full **20+ move random scrambles** in sub-second speeds.
 
-| **Scramble Length** | **Avg Solution Length** | **Avg Time** | **Status** |
-| :---: | :---: | :---: | :---: |
-| 25-move scramble | ~20–24 moves | < 0.050s | Verified Optimal / Near-Optimal |
+| **Scramble Length** | **Avg Solution Length** | **Avg Time** |
+| :---: | :---: | :---: | 
+| 25-move scramble | ~22–25 moves | ~ 0.088s | 
 
 ---
 
